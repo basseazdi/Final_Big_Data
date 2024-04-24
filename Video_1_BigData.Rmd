@@ -1,0 +1,72 @@
+---
+title: "Video_1_BigData"
+author: "Sebastián Díaz"
+date: "2024-02-28"
+output: powerpoint_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Instalación del paquete y carga de los datos:
+```{r}
+library(ISLR)
+data(Carseats)
+```
+Summary estándar:
+```{r}
+fit3 = lm(Sales ~ Price + Urban + US, data = Carseats)
+summary(fit3)
+```
+
+- El coeficiente de la variable "Price" se interpreta como el efecto promedio de un aumento de 1 dólar en el precio, resultando en una disminución de 54.45 unidades en las ventas, manteniendo fijos los demás predictores (ventas está medido en miles de unidades).
+- El coeficiente de la variable "Urban" se interpreta como que, en promedio, las ventas unitarias en ubicaciones urbanas son 21.92 unidades menores que en ubicaciones rurales, manteniendo fijos los demás predictores.
+- El coeficiente de la variable "US" se interpreta como que, en promedio, las ventas unitarias en una tienda de EE. UU. son 1200.57 unidades más que en una tienda no estadounidense, manteniendo fijos los demás predictores.
+
+Sacamos un QQ Plot:
+```{r}
+library(car)
+qqPlot(fit3, main = "QQ Plot")
+```
+
+- El área azul representa intervalos de confianza para los cuantiles teóricos.
+- La línea diagonal compara cuantiles observados con cuantiles teóricos (normalmente de una distribución normal).
+- Una línea delgada y constante sugiere buen ajuste a la distribución teórica.
+- La expansión en los extremos indica mayor variabilidad en esos cuantiles teóricos, lo cual señala desviaciones de la normalidad en las colas de la distribución de datos.
+
+```{r}
+subset1 = Carseats[51, c('Sales', 'US', 'Urban', 'Price')]
+subset2 = Carseats[377, c('Sales', 'US', 'Urban', 'Price')]
+cat("Observaciones en cuantiles extremos en el gráfico QQ:")
+print(c("Fila 51:", subset1, "Fila 377:", subset2))
+
+cat("\nComparación con Promedios Generales:")
+cat("\nMedia de Ventas:", round(mean(Carseats$Sales), 2))
+cat("\nMedia de Precio:", round(mean(Carseats$Price), 2))
+```
+Se observa como la media de ventas se separa bastante de los valores en estos extremos.
+
+Utilizamos paquete sjPlot:
+```{r}
+library(sjPlot)
+
+sjPlot::plot_model(fit3, type = "est")
+
+```
+Este gráfico muestra los coeficientes del modelo de regresión lineal representados como puntos en el valor del coeficiente, y "alas" o "vibrisas" que representan los intervalos de confianza.
+Los intervalos de confianza alrededor de las barras indican la incertidumbre asociada con cada coeficiente.
+
+Con ggplot2():
+```{r}
+library(ggplot2)
+residual_data = data.frame(Sales = Carseats$Sales, Residuals = residuals(fit3))
+ggplot(residual_data, aes(x = Sales, y = Residuals)) +
+  geom_point() +
+  geom_smooth(method = "loess") +
+  labs(title = "Residuos vs. Ventas")
+```
+Este gráfico muestra la relación entre las ventas (variable dependiente) y los residuos del modelo de regresión lineal.
+Cada punto en el gráfico representa una observación en el conjunto de datos, donde el eje x (horizontal) es el valor de las ventas y el eje y (vertical) es el residuo asociado con ese valor (Lo real - la estimación de la recta de regresión).
+La línea suavizada (curva) proporciona una representación general de la tendencia en la relación entre ventas y residuos.
+
